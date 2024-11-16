@@ -102,9 +102,9 @@ async def manejar_comando(event, url, client):
                 
                 try:
                     # Enviar cada dato individualmente
-                    await client.send_message(chat_id, f"Usuario: {usuario}")
-                    await client.send_message(chat_id, f"Contraseña: {password}")
-                    await client.send_message(chat_id, f"Token: {token}")
+                    await client.send_message(chat_id, f" {usuario}")
+                    await client.send_message(chat_id, f" {password}")
+                    await client.send_message(chat_id, f" {token}")
                 except PeerIdInvalidError:
                     await client.send_message(event.chat_id, f"❌ No se pudo enviar el mensaje a @{username}. Asegúrate de que el usuario haya iniciado una conversación con el bot.")
             else:
@@ -115,8 +115,8 @@ async def manejar_comando(event, url, client):
         await client.send_message(event.chat_id, "❌ No estás autorizado para usar este comando.")
 
 # Comandos para otorgar permisos temporales
-@client_1.on(events.NewMessage(pattern='/vip(\d) (.+)'))
-@client_2.on(events.NewMessage(pattern='/vip(\d) (.+)'))
+@client_1.on(events.NewMessage(pattern=r'/vip(\d) (.+)'))
+@client_2.on(events.NewMessage(pattern=r'/vip(\d) (.+)'))
 async def otorgar_vip(event):
     # Verificar si el mensaje es privado
     if not event.is_private:
@@ -143,8 +143,8 @@ async def otorgar_vip(event):
     else:
         await client.send_message(event.chat_id, "❌ No tienes permiso para otorgar privilegios.")
 
-@client_1.on(events.NewMessage(pattern='/gold(\d) (.+)'))
-@client_2.on(events.NewMessage(pattern='/gold(\d) (.+)'))
+@client_1.on(events.NewMessage(pattern=r'/gold(\d) (.+)'))
+@client_2.on(events.NewMessage(pattern=r'/gold(\d) (.+)'))
 async def otorgar_gold(event):
     # Verificar si el mensaje es privado
     if not event.is_private:
@@ -164,16 +164,16 @@ async def otorgar_gold(event):
         
         try:
             # Enviar confirmación al administrador y al usuario específico
-            await client.send_message(event.chat_id, f"🏅 ¡Felicidades @{nuevo_usuario}, ahora cuentas con privilegios GOLD para poder consultar por {dias} días!")
-            await client.send_message(nuevo_usuario, f"🏅 ¡Hola @{nuevo_usuario}, has recibido membresía GOLD para consultar durante {dias} días!")
+            await client.send_message(event.chat_id, f"🎖 ¡Felicidades @{nuevo_usuario}, ahora cuentas con privilegios GOLD para poder consultar por {dias} días!")
+            await client.send_message(nuevo_usuario, f"🎖 ¡Hola @{nuevo_usuario}, has recibido membresía GOLD para consultar durante {dias} días!")
         except PeerIdInvalidError:
             await client.send_message(event.chat_id, f"❌ No se pudo enviar el mensaje a @{nuevo_usuario}. Asegúrate de que el usuario haya iniciado una conversación con el bot.")
     else:
         await client.send_message(event.chat_id, "❌ No tienes permiso para otorgar privilegios.")
 
 # Comandos para actualizar URLs
-@client_1.on(events.NewMessage(pattern='/actualizar (\w+) (.+)'))
-@client_2.on(events.NewMessage(pattern='/actualizar (\w+) (.+)'))
+@client_1.on(events.NewMessage(pattern=r'/actualizar (\w+) (.+)'))
+@client_2.on(events.NewMessage(pattern=r'/actualizar (\w+) (.+)'))
 async def actualizar_url(event):
     # Verificar si el mensaje es privado
     if not event.is_private:
@@ -199,186 +199,6 @@ async def actualizar_url(event):
     else:
         await client.send_message(event.chat_id, "❌ No tienes permiso para actualizar URLs.")
 
-# Comando para agregar nuevas URLs para VIP
-@client_1.on(events.NewMessage(pattern='/agregarvip (\w+) (.+)'))
-@client_2.on(events.NewMessage(pattern='/agregarvip (\w+) (.+)'))
-async def agregar_vip_url(event):
-    # Verificar si el mensaje es privado
-    if not event.is_private:
-        return
-    
-    sender = await event.get_sender()
-    username = sender.username
-    client = event.client
-    
-    if username == ADMIN_USER:
-        comando = event.pattern_match.group(1)
-        nueva_url = event.pattern_match.group(2)
-        
-        if comando not in URLS['vip']:
-            URLS['vip'][comando] = nueva_url
-            # Guardar las URLs actualizadas en JSON
-            guardar_urls()
-            await client.send_message(event.chat_id, f"✅ El comando VIP /{comando} ha sido agregado con la URL proporcionada.")
-        else:
-            await client.send_message(event.chat_id, f"❌ El comando /{comando} ya existe. Usa /actualizar para cambiar la URL.")
-    else:
-        await client.send_message(event.chat_id, "❌ No tienes permiso para agregar nuevas URLs.")
-
-# Comando para agregar nuevas URLs para GOLD
-@client_1.on(events.NewMessage(pattern='/agregargold (\w+) (.+)'))
-@client_2.on(events.NewMessage(pattern='/agregargold (\w+) (.+)'))
-async def agregar_gold_url(event):
-    # Verificar si el mensaje es privado
-    if not event.is_private:
-        return
-    
-    sender = await event.get_sender()
-    username = sender.username
-    client = event.client
-    
-    if username == ADMIN_USER:
-        comando = event.pattern_match.group(1)
-        nueva_url = event.pattern_match.group(2)
-        
-        if comando not in URLS['gold']:
-            URLS['gold'][comando] = nueva_url
-            # Guardar las URLs actualizadas en JSON
-            guardar_urls()
-            await client.send_message(event.chat_id, f"✅ El comando GOLD /{comando} ha sido agregado con la URL proporcionada.")
-        else:
-            await client.send_message(event.chat_id, f"❌ El comando /{comando} ya existe. Usa /actualizar para cambiar la URL.")
-    else:
-        await client.send_message(event.chat_id, "❌ No tienes permiso para agregar nuevas URLs.")
-
-# Comando para eliminar URLs
-@client_1.on(events.NewMessage(pattern='/eliminar (\w+)'))
-@client_2.on(events.NewMessage(pattern='/eliminar (\w+)'))
-async def eliminar_url(event):
-    # Verificar si el mensaje es privado
-    if not event.is_private:
-        return
-    
-    sender = await event.get_sender()
-    username = sender.username
-    client = event.client
-    
-    if username == ADMIN_USER:
-        comando = event.pattern_match.group(1)
-        
-        for categoria in URLS.values():
-            if comando in categoria:
-                del categoria[comando]
-                # Guardar las URLs actualizadas en JSON
-                guardar_urls()
-                await client.send_message(event.chat_id, f"🗑️ El comando /{comando} ha sido eliminado correctamente.")
-                return
-        
-        await client.send_message(event.chat_id, f"❌ El comando /{comando} no existe.")
-    else:
-        await client.send_message(event.chat_id, "❌ No tienes permiso para eliminar URLs.")
-
-# Comando para listar todos los comandos registrados
-@client_1.on(events.NewMessage(pattern='/cmds'))
-@client_2.on(events.NewMessage(pattern='/cmds'))
-async def listar_cmds(event):
-    # Verificar si el mensaje es privado
-    if not event.is_private:
-        return
-    
-    sender = await event.get_sender()
-    username = sender.username
-    client = event.client
-    
-    if username == ADMIN_USER:
-        lista_comandos = []
-        for categoria, comandos in URLS.items():
-            lista_comandos.append(f"Comandos {categoria.upper()}:")
-            lista_comandos.extend([f"/{comando}: {url}" for comando, url in comandos.items()])
-        
-        if lista_comandos:
-            await client.send_message(event.chat_id, f"📋 Lista de comandos registrados:\n" + "\n".join(lista_comandos))
-        else:
-            await client.send_message(event.chat_id, "❌ No hay comandos registrados actualmente.")
-    else:
-        await client.send_message(event.chat_id, "❌ No tienes permiso para ver los comandos registrados.")
-
-# Comando para que los usuarios vean sus comandos disponibles
-@client_1.on(events.NewMessage(pattern='/comandos'))
-@client_2.on(events.NewMessage(pattern='/comandos'))
-async def listar_comandos_usuario(event):
-    # Verificar si el mensaje es privado
-    if not event.is_private:
-        return
-    
-    sender = await event.get_sender()
-    username = sender.username
-    client = event.client
-    
-    if username in permisos:
-        nivel = permisos[username]['nivel']
-        lista_comandos = []
-        
-        if nivel == 'vip':
-            lista_comandos.extend([f"/{comando}: {url}" for comando, url in URLS['vip'].items()])
-        elif nivel == 'gold':
-            lista_comandos.extend([f"/{comando}: {url}" for comando, url in URLS['vip'].items()])
-            lista_comandos.extend([f"/{comando}: {url}" for comando, url in URLS['gold'].items()])
-        
-        if lista_comandos:
-            await client.send_message(event.chat_id, f"📋 Lista de comandos disponibles para ti:\n" + "\n".join(lista_comandos))
-        else:
-            await client.send_message(event.chat_id, "❌ No tienes comandos disponibles actualmente.")
-    else:
-        await client.send_message(event.chat_id, "❌ No tienes una membresía activa para ver los comandos disponibles.")
-
-# Comando para verificar el tiempo restante de membresía
-@client_1.on(events.NewMessage(pattern='/me (.+)'))
-@client_2.on(events.NewMessage(pattern='/me (.+)'))
-async def verificar_membresia(event):
-    # Verificar si el mensaje es privado
-    if not event.is_private:
-        return
-    
-    usuario_a_verificar = event.pattern_match.group(1).lstrip('@')  # Eliminar '@' del nombre de usuario si está presente
-    
-    if usuario_a_verificar in permisos:
-        tiempo_restante = permisos[usuario_a_verificar]['expiracion'] - datetime.now()
-        dias, segundos = tiempo_restante.days, tiempo_restante.seconds
-        horas = segundos // 3600
-        minutos = (segundos % 3600) // 60
-        await event.client.send_message(event.chat_id, f"@{usuario_a_verificar} cuenta con {dias} días, {horas} horas y {minutos} minutos de membresía.")
-    else:
-        await event.client.send_message(event.chat_id, f"❌ No se encontraron permisos para {usuario_a_verificar}.")
-
-# Comando para listar todas las membresías registradas
-@client_1.on(events.NewMessage(pattern='/membresias'))
-@client_2.on(events.NewMessage(pattern='/membresias'))
-async def listar_membresias(event):
-    # Verificar si el mensaje es privado
-    if not event.is_private:
-        return
-    
-    sender = await event.get_sender()
-    username = sender.username
-    client = event.client
-    
-    if username == ADMIN_USER:
-        lista_membresias = []
-        for usuario, permiso in permisos.items():
-            tiempo_restante = permiso['expiracion'] - datetime.now()
-            dias, segundos = tiempo_restante.days, tiempo_restante.seconds
-            horas = segundos // 3600
-            minutos = (segundos % 3600) // 60
-            lista_membresias.append(f"@{usuario}: {permiso['nivel'].upper()}, {dias} días, {horas} horas, {minutos} minutos restantes")
-        
-        if lista_membresias:
-            await client.send_message(event.chat_id, f"📋 Lista de membresías registradas:\n" + "\n".join(lista_membresias))
-        else:
-            await client.send_message(event.chat_id, "❌ No hay membresías registradas actualmente.")
-    else:
-        await client.send_message(event.chat_id, "❌ No tienes permiso para ver las membresías registradas.")
-
 # Cargar permisos y URLs al iniciar el bot
 cargar_permisos()
 cargar_urls()
@@ -386,12 +206,12 @@ cargar_urls()
 # Registrar los comandos dinámicamente solo para usuarios con permisos
 def registrar_comandos(client):
     for comando, url in URLS['vip'].items():
-        @client.on(events.NewMessage(pattern=f'/{comando}'))
+        @client.on(events.NewMessage(pattern=fr'/{comando}'))
         async def evento_handler(event, url=url):
             if event.is_private:
                 await manejar_comando(event, url, client)
     for comando, url in URLS['gold'].items():
-        @client.on(events.NewMessage(pattern=f'/{comando}'))
+        @client.on(events.NewMessage(pattern=fr'/{comando}'))
         async def evento_handler(event, url=url):
             if event.is_private:
                 await manejar_comando(event, url, client)
@@ -417,3 +237,4 @@ async def main():
 # Iniciar los clientes de Telegram
 with client_1, client_2:
     client_1.loop.run_until_complete(main())
+
